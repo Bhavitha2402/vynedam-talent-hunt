@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import {
   Mail,
   Phone,
@@ -51,14 +53,31 @@ export function ContactSection() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!validate()) return;
+
+  try {
     setStatus("loading");
-    // Simulate submission
-    await new Promise((r) => setTimeout(r, 2000));
+
+    await addDoc(collection(db, "participants"), {
+      name: form.name,
+      email: form.email,
+      college: form.college,
+      phone: form.phone,
+      category: form.category,
+      message: form.message,
+      createdAt: new Date(),
+    });
+
     setStatus("success");
-  };
+  } catch (error) {
+    console.error("Firebase Error:", error);
+    alert("Something went wrong.");
+    setStatus("idle");
+  }
+};
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
